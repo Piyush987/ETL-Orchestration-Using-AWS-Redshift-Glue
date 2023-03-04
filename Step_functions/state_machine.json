@@ -1,0 +1,60 @@
+{
+  "StartAt": "ReadFilterJob",
+  "States": {
+    "ReadFilterJob": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::glue:startJobRun.sync",
+      "Parameters": {
+        "JobName": "myglue",
+        "Arguments": {
+          "--db": "reviews",
+          "--db_creds": "reviewssecret",
+          "--bucket": "stack2-scriptbucket-nsqka0hyhfqi",
+          "--file": "sql/etl.sql"
+        }
+      },
+      "Next": "ReportJob",
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.TaskFailed"
+          ],
+          "Next": "NotifyFailure",
+          "ResultPath": "$.cause"
+        }
+      ]
+    },
+    "ReportJob": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::glue:startJobRun.sync",
+      "Parameters": {
+        "JobName": "myglue",
+        "Arguments": {
+          "--db": "reviews",
+          "--db_creds": "reviewssecret",
+          "--bucket": "stack2-scriptbucket-nsqka0hyhfqi",
+          "--file": "sql/topreviews.sql"
+        }
+      },
+      "End": true,
+      "Catch": [
+        {
+          "ErrorEquals": [
+            "States.TaskFailed"
+          ],
+          "Next": "NotifyFailure",
+          "ResultPath": "$.cause"
+        }
+      ]
+    },
+    "NotifyFailure": {
+      "Type": "Task",
+      "Resource": "arn:aws:states:::sns:publish",
+      "Parameters": {
+        "TopicArn": "arn:aws:sns:us-east-1:338401225294:alarm-topic",
+        "Message.$": "$.cause"
+      },
+      "End": true
+    }
+  }
+}

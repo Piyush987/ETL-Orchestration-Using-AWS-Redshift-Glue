@@ -1,0 +1,12 @@
+{
+	"fileLocations": [{
+		"URIs": [
+			"s3://redshift-databucket261191/testunload/0000_part_00"
+		]
+	}],
+	"globalUploadSettings": {
+		"format": "CSV",
+		"delimiter": "|",
+		"containsHeader": "false"
+	}
+}
